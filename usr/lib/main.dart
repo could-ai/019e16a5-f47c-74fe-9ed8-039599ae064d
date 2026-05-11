@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const InvoiceTrackerApp());
@@ -98,6 +99,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Invoice Tracker'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.table_chart),
+            tooltip: 'Copy to Excel (CSV)',
+            onPressed: () {
+              final buffer = StringBuffer();
+              buffer.writeln('Invoice ID,Customer Name,Total Amount,Amount Paid,Balance Due,Due Date,Status');
+              for (final inv in _invoices) {
+                final status = inv.isPaid ? 'Paid' : (inv.amountPaid > 0 ? 'Partial' : 'Unpaid');
+                buffer.writeln('${inv.id},"${inv.customerName}",${inv.totalAmount},${inv.amountPaid},${inv.balanceDue},${inv.dueDate.toIso8601String().split('T')[0]},$status');
+              }
+              Clipboard.setData(ClipboardData(text: buffer.toString()));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Copied! Paste into Excel.')),
+              );
+            },
+          ),
+        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
